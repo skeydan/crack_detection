@@ -56,15 +56,32 @@ if (step == 3) {
   output_dir_nocrack <- "/home/key/code/by_topic/crack_detection/nocrack100"
   
   # valid_images <- list.files()[grepl('marked.png',list.files())]
-  # just first three
-  valid_images <- c("img_equalized_1_marked.tif", "img_equalized_2_marked.tif", "img_equalized_5_marked.tif")
-  valid_images_clean <- c("img_equalized_1.tif", "img_equalized_2.tif", "img_equalized_5.tif")
+  # valid_images <- c("img_equalized_2_marked.tif", "img_equalized_5_marked.tif")
+  valid_images <- c("img_equalized_1_marked.tif", "img_equalized_2_marked.tif", "img_equalized_5_marked.tif",
+                    "img_equalized_6_marked.tif", "img_equalized_8_marked.tif", "img_equalized_12_marked.tif")
+  #valid_images_clean <- c("SampleA2_Detail_B_dog.tif", "SampleA2_Detail_E_dog.tif")
+  valid_images_clean <- c("SampleA2_Detail_A_dog.tif", "SampleA2_Detail_B_dog.tif", "SampleA2_Detail_E_dog.tif",
+                          "SampleA1_Detail_A_dog.tif", "SampleB1_Detail_B_dog.tif", "SampleB2_Detail_C_dog.tif")
+
+  
+  # cp SampleA2_Detail_B_dog_* ../data/train/nocrack/  
+  # cp SampleA2_Detail_A_dog_* ../data/train/nocrack/
+  # cp SampleB1_Detail_B_dog_* ../data/train/nocrack/
+  # cp SampleA2_Detail_E_dog_* ../data/test/nocrack/
+  # cp SampleA1_Detail_A_dog_* ../data/test/nocrack/
+  # cp SampleB2_Detail_C_dog_* ../data/test/nocrack/
+
+# cp SampleA2_Detail_B_dog_* ../data/train/crack/
+# cp SampleA2_Detail_A_dog_* ../data/train/crack/
+# cp SampleB1_Detail_B_dog_* ../data/train/crack/
+# cp SampleA2_Detail_E_dog_* ../data/test/crack/
+# cp SampleA1_Detail_A_dog_* ../data/test/crack/
+# cp SampleB2_Detail_C_dog_* ../data/test/crack/
   
   #newsize <- 50
   newsize <- 100
   stepsize <- 5
-  #threshold = 42
-  threshold = 84
+  threshold = 10
   
   count_marked_pixels <- function(img) {
     img_r <- channel(img, 'red')
@@ -81,9 +98,9 @@ if (step == 3) {
     img <- readImage(file.path(input_dir, valid_images[img_index]))
     img_clean <- readImage(file.path(input_dir,valid_images_clean[img_index]))
     
-    img_name <- sub('_marked.tif', '', valid_images[img_index])
+    img_name <- sub('.tif', '_', valid_images_clean[img_index])
     img_name
-    display(img, method = 'raster')
+    display(img_clean, method = 'raster')
     
     height <- length(img[ , 1, 1])
     width <- length(img[ 1, , 1])
@@ -92,20 +109,22 @@ if (step == 3) {
     js <- c()
     greencounts <- c()
     
-    p_other <- 0.04
+    p_other <- 0.03
     
     for (i in seq(1, height - newsize + 1, stepsize)) {
       for (j in seq(1, width - newsize + 1, stepsize)) {
         img_part <- img[i:(i + newsize - 1), j:(j + newsize - 1), ]
         img_part_clean <- img_clean[i:(i + newsize - 1), j:(j + newsize - 1), ]
-        greenpix <- count_marked_pixels(img_part)
-        if(greenpix > 0) {
+        img_part_center <- img_part[40:60, 40:60, ]
+        greenpix_overall <- count_marked_pixels(img_part)
+        greenpix_center <- count_marked_pixels(img_part_center)
+        if(greenpix_overall > 0) {
           #display(img_part, method = 'raster')
           #print(paste(i, j, greenpix, sep = ':'))
           is <- c(is, i)
           js <- c(js,j)
-          greencounts <- c(greencounts,greenpix)
-          if(greenpix >= threshold) {
+          greencounts <- c(greencounts,greenpix_overall)
+          if(greenpix_center >= threshold) {
             writeImage(img_part_clean, paste0(output_dir_crack, '/', img_name, i, '_', j, '.png'))
           }
         } else {
